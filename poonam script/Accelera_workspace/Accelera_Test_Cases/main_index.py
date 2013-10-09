@@ -2,7 +2,7 @@ import os
 import properties
 import codecs
 
-def write_main_index():
+def write_main_index(resultlocation):
     contents = '''<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"> 
     <html>
     <head> 
@@ -23,16 +23,8 @@ def write_main_index():
     Coverage Index File: <a href='%s'>Index</a>
     </p>
     '''
-    resultlocation = properties.Results
-    print resultlocation
-    print os.getcwd()
-    #os.chdir(os.getcwd())
-    parentdir = os.path.split(os.getcwd())
-    print parentdir
-    mainindexdir = os.path.join(resultlocation, parentdir[1])
-    mainindexfilepath = os.path.join(resultlocation, parentdir[1], 'Main_Index.html')  
-    print mainindexdir
-    print mainindexfilepath 
+    os.chdir(resultlocation)
+    mainindexfilepath = os.path.join(resultlocation, 'Main_Index.html')  
     suitename = None
     suitename1 = None
     fh = None
@@ -43,26 +35,19 @@ def write_main_index():
                     dir1 = os.path.split(os.path.dirname(dirn))
                     suitename = dir1[1]
                     htmlindexfile = os.path.join(dirn,file)
-                    print htmlindexfile
-                    htmlindexfile1 = os.path.relpath(htmlindexfile, mainindexdir)
+                    htmlindexfile1 = os.path.relpath(htmlindexfile, resultlocation)
                 elif 'Results' in dirn:
                     dir2 = os.path.split(os.path.dirname(dirn))
                     suitename1 = dir2[1]
                     resultindexfile = os.path.join(dirn,file)
-                    resultindexfile1 = os.path.relpath(resultindexfile, mainindexdir)
+                    resultindexfile1 = os.path.relpath(resultindexfile, resultlocation)
                 if suitename != None and suitename1 != None:
                     if suitename ==  suitename1:
                         if os.path.exists(mainindexfilepath):
-                            print resultindexfile1
-                            print htmlindexfile1
                             fh = codecs.open(mainindexfilepath, "a+")
                             fh.write(contents1 % (suitename, resultindexfile1, htmlindexfile1))
                         else:
-                            print resultindexfile1
-                            print htmlindexfile1
                             fh = codecs.open(mainindexfilepath, "w+")
                             fh.write(contents % (suitename, resultindexfile1, htmlindexfile1))
-          
-#write_main_index()       
         
         
