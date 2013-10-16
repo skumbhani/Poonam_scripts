@@ -7,16 +7,11 @@ from time import gmtime, strftime
 
 def run(suite, filepath):
     filePath, fileExtension = os.path.splitext(filepath)
-   # print filePath
-   # print fileExtension
     filename = os.path.split(filePath)
-   # print filename
     resultdir = os.path.join(filename[0], 'Results')
     suitename = os.path.split(filename[0])
     if not os.path.exists(resultdir):
         os.makedirs(resultdir)
-    #print filename[1]
-   # print resultfile
     os.chdir(resultdir)
     cnt=0
     for files in glob.glob("*.html"):
@@ -30,12 +25,13 @@ def run(suite, filepath):
     print resultfile
     testcasename = filename[1]
     with open(resultfile, "wb") as f:
-        HTMLTestRunner.HTMLTestRunner(
+        runner = HTMLTestRunner.HTMLTestRunner(
                     stream = f,
                     verbosity=2,
                     title='Test execution report',
                     description='Result of tests'
-                    ).run(suite)
+                    )
+        runner.run(suite)
     f.close()
     write_index(resultfile, suitename[1], testcasename)
     os.chdir(filename[0])
@@ -51,28 +47,63 @@ def write_index(resultfile, suitename, testcasename):
     <h2> Index to Result Files</h2>
     <p><br><b>      Test Suite:-&nbsp;&nbsp;&nbsp;%s</b></br>
     <br>Execution Summary:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s</br>
-    Test case:-&nbsp;&nbsp;&nbsp;<a href='%s'>%s</a>
+    Test case:-&nbsp;&nbsp;&nbsp;<a href='%s'><b style="background-color:%s;">%s</b></a><b>&nbsp;&nbsp;Count:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Pass:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Fail:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Error:- %s</b>
     </p>
     </html>
     '''
     contents1 = '''
     <p>Execution Summary:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s
-    <br>Test case:-&nbsp;&nbsp;&nbsp;<a href='%s'>%s</a></br>
+    <br>Test case:-&nbsp;&nbsp;&nbsp;<a href='%s'><b style="background-color:%s;">%s</b></a><b>&nbsp;&nbsp;Count:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Pass:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Fail:- %s&nbsp;&nbsp;</b><b style="background-color:%s;">Error:- %s</b></br>
     </p>
-    ''' 
+    '''
     
     indexfilepath = os.path.split(resultfile)
     indexfilepath1 = os.path.join(indexfilepath[0], "index.html")
     htmlfile = indexfilepath[1].split('.') 
     time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-   # print indexfilepath1
     fh = None
+    linecnt = None
+    lineend = None
+    array = []
+    passtag = 'white'
+    failtag = 'white'
+    errortag = 'white'
+    tag = 'green'
+    fh1 = open(resultfile, "rb")
+    for num,line in enumerate(fh1):
+        if "id='total_row'" in line:
+            linecnt = num + 2
+            lineend = linecnt+4
+        if num == linecnt and num < lineend:
+            linecnt = linecnt + 1
+            array.append(line)
+        elif num == lineend:
+            break
+    for num, each in enumerate(array):
+        each1 = each.replace("<" and ">" and "=" and "td" and "/", "")
+        each1 = each1.replace("<td>","")
+        if num == 0:
+            count = int(each1)
+        elif num == 1:
+            passcnt = int(each1)
+            if passcnt > 0:
+                passtag = 'green'
+        elif num == 2:
+            failcnt = int(each1)
+            if failcnt > 0:
+                failtag = 'red'
+                tag = 'red'
+        elif num == 3:
+            errorcnt = int(each1)
+            if errorcnt > 0:
+                errortag = 'purple'
+                tag = 'red'
     if os.path.exists(indexfilepath1):
         fh = codecs.open(indexfilepath1, "a+")
-        fh.write(contents1 % (time, indexfilepath[1], testcasename))
+        fh.write(contents1 % (time, indexfilepath[1], tag, testcasename, count, passtag, passcnt, failtag, failcnt, errortag, errorcnt))
     else:
         fh = codecs.open(indexfilepath1, "w+")
-        fh.write(contents % (suitename, time, indexfilepath[1], testcasename))
+        fh.write(contents % (suitename, time, indexfilepath[1], tag, testcasename, count, passtag, passcnt, failtag, failcnt, errortag, errorcnt))
     
                             
 

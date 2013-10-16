@@ -23,6 +23,7 @@ def write_main_index(resultlocation):
     Coverage Index File: <a href='%s'>Index</a>
     </p>
     '''
+
     os.chdir(resultlocation)
     mainindexfilepath = os.path.join(resultlocation, 'Main_Index.html')  
     suitename = None
